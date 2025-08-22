@@ -2,6 +2,10 @@ using StoreApp.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Services.AddControllers()
+    .AddApplicationPart(typeof(Presentation.AssemblyReference).Assembly); // API controller yapýlandýrmasý
+
 builder.Services.AddControllersWithViews(); //**
 builder.Services.AddRazorPages(); // Razor pages yapýlandýrmasý
 
@@ -12,6 +16,7 @@ builder.Services.ConfigureSession();  // Extensions içindeki ServiceExtensions m
 builder.Services.ConfigureRepositoryRegistration(); // Extensions içindeki ServiceExtensions metodu içinden geliyor
 builder.Services.ConfigureServiceRegistration(); // Extensions içindeki ServiceExtensions metodu içinden geliyor
 builder.Services.ConfigureRouting(); // Extensions içindeki ServiceExtensions metodu içinden geliyor
+builder.Services.ConfigureApplicationCookie(); // Extensions içindeki ServiceExtensions metodu içinden geliyor
 
 
 builder.Services.AddAutoMapper(typeof(Program));
@@ -24,6 +29,9 @@ app.UseSession(); // Session kullanma metodu
 app.UseHttpsRedirection(); //**
 app.UseRouting(); //** 
 
+app.UseAuthentication(); // 
+app.UseAuthorization(); // 
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapAreaControllerRoute(
@@ -34,7 +42,10 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllerRoute("default","{controller=Home}/{action=Index}/{id?}");
 
     endpoints.MapRazorPages(); // Razor pages yapýlandýrmasý
+
+    endpoints.MapControllers(); // API controller yapýlandýrmasý
 }); //***
+
 
 app.ConfigureAndCheckMigration(); // Otomatik migration almak için yazdýðýmýz fonksiyon
 app.ConfigureLocalization(); // Localization için yazdýðýmýz fonksiyon

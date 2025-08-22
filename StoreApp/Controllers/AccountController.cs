@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Entities.Dtos;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StoreApp.Models;
 
@@ -14,9 +15,9 @@ namespace StoreApp.Controllers
             _signInManager = signInManager;
         }
 
-        public IActionResult Login()
+        public IActionResult Login([FromQuery(Name = "ReturnUrl")] string ReturnUrl = "/")
         {
-            return View();
+            return View(new LoginModel { ReturnUrl = ReturnUrl });
         }
 
         [HttpPost]
@@ -38,5 +39,55 @@ namespace StoreApp.Controllers
             }
             return View();
         }
+
+        public async Task<IActionResult> Logout([FromQuery(Name ="ReturnUrl")] string ReturnUrl = "/")
+        {
+            await _signInManager.SignOutAsync();
+            return Redirect(ReturnUrl);
+        }
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register([FromForm] RegisterDto model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new IdentityUser
+                {
+                    UserName = model.UserName,
+                    Email = model.Email,
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    var roleResult = await _userManager.AddToRoleAsync(user, "User");
+
+                    if (roleResult.Succeeded)
+                    {
+                        return RedirectToAction("Login", new {ReturnUrl = "/"});
+                    }
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                }
+            }
+            return View();
+        }
+
+        public IActionResult AccessDenied([FromQuery(Name = "ReturnUrl")] string returnUrl)
+        {
+            return View();
+        }
+
     }
 }
